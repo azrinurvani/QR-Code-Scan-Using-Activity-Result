@@ -80,6 +80,7 @@ class ScanPageActivity : AppCompatActivity() {
 
             override fun receiveDetections(detections: Detector.Detections<Barcode>?) {
                 if ((detections!= null) && (detections.detectedItems != null)){
+                    Log.v("ADX","Detections Receiver")
 
                     val qrDetect : SparseArray<Barcode> = detections?.detectedItems
                     if (qrDetect?.size()!=null){
@@ -88,30 +89,46 @@ class ScanPageActivity : AppCompatActivity() {
 //                            txtResult.text = code?.displayValue
                         val resultScan = code?.displayValue
 
+                        Log.v("ADX","resultScan : $resultScan")
+
                         val p = Pattern.compile(
                             "[^a-z0-9 ]",
                             Pattern.CASE_INSENSITIVE
                         )
-                        val m: Matcher = p.matcher(resultScan)
+                        val m: Matcher = p.matcher(resultScan.toString())
                         val containsSymbol = m.find()
 
                         val space = Pattern.compile("\\s+")
                         val matcherSpace = space.matcher(resultScan.toString())
                         val containsSpace = matcherSpace.find()
 
-                        if (containsSpace==true||containsSymbol==true) {
-                            alertValueContainsSymbol()
-                            Log.v("ADX","Contains Symbol and Space")
+                        Log.v("ADX","contains symbol ${containsSymbol.toString()}, contains space ${containsSpace.toString()}")
+
+                        try{
+                            if (containsSpace||containsSymbol) {
+                                barcodeDetector?.release()
+                                Log.v("ADX","contains symbol2 ${containsSymbol.toString()}, contains space ${containsSpace.toString()}")
+
+                                alertValueContainsSymbol()
+                                finish()
+                                Log.v("ADX","Contains Symbol and Space")
+                            }else{
+                                Log.v("ADX","Not Contains Symbol and Space ")
+                            }
+
+                            barcodeDetector?.release()
+                            val index= intent.getIntExtra("index",0)
+                            val returnIntent = Intent()
+                            returnIntent.putExtra("value",resultScan)
+                            Log.d("ADX","ScanPage value : "+resultScan + " Index : "+resultScan)
+                            setResult(index,returnIntent)
+                            finish()
+//                        }
+                        }catch (e : Exception){
+                            Log.v("ADX","ScanException $e")
                         }
 
-                        barcodeDetector?.release()
-                        val index= intent.getIntExtra("index",0)
-                        val returnIntent = Intent()
-                        returnIntent.putExtra("value",resultScan)
-                        Log.d("ADX","ScanPage value : "+resultScan + " Index : "+resultScan)
-                        setResult(index,returnIntent)
-                        finish()
-//                        }
+
                     }
                 }
 
