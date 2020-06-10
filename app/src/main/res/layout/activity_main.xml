@@ -30,6 +30,7 @@
                 android:id="@+id/edtScanIccid"
                 android:layout_marginRight="8dp"
                 android:layout_width="300dp"
+                android:inputType="number"
                 android:layout_height="wrap_content"
                 android:hint="Scan ICCID"
                 android:textSize="18sp" />

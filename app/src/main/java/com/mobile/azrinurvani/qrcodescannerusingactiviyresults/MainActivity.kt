@@ -34,10 +34,10 @@ class MainActivity : AppCompatActivity() {
 
             when (requestCode){
                 1 -> {
-                    edtScanIccid.setText(it.getStringExtra("value"))
+                    edtScanIccid.setText(it.getStringExtra("value").toString().trim())
                 }
                 2 -> {
-                    edtScanTcuIccid.setText(it.getStringExtra("value"))
+                    edtScanTcuIccid.setText(it.getStringExtra("value").toString().trim())
                 }
             }
         }

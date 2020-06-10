@@ -1,21 +1,25 @@
 package com.mobile.azrinurvani.qrcodescannerusingactiviyresults
 
 import android.Manifest
+import android.R.attr.name
 import android.content.Intent
 import android.content.pm.PackageManager
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.util.SparseArray
+import android.view.LayoutInflater
 import android.view.SurfaceHolder
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.google.android.gms.vision.CameraSource
 import com.google.android.gms.vision.Detector
 import com.google.android.gms.vision.barcode.Barcode
 import com.google.android.gms.vision.barcode.BarcodeDetector
 import kotlinx.android.synthetic.main.activity_scan_page.*
-import java.io.IOException
+import kotlinx.android.synthetic.main.alert_failed.view.*
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
 
 class ScanPageActivity : AppCompatActivity() {
     private val requestPermissionCode = 1111
@@ -80,20 +84,35 @@ class ScanPageActivity : AppCompatActivity() {
                     val qrDetect : SparseArray<Barcode> = detections?.detectedItems
                     if (qrDetect?.size()!=null){
 
-                            val code = qrDetect?.valueAt(0)
+                        val code = qrDetect?.valueAt(0)
 //                            txtResult.text = code?.displayValue
+                        val resultScan = code?.displayValue
 
-                            val resultScan = code?.displayValue
-                            barcodeDetector?.release()
+                        val p = Pattern.compile(
+                            "[^a-z0-9 ]",
+                            Pattern.CASE_INSENSITIVE
+                        )
+                        val m: Matcher = p.matcher(resultScan)
+                        val containsSymbol = m.find()
 
-                            val index= intent.getIntExtra("index",0)
-                            val returnIntent = Intent()
-                            returnIntent.putExtra("value",resultScan)
+                        val space = Pattern.compile("\\s+")
+                        val matcherSpace = space.matcher(resultScan.toString())
+                        val containsSpace = matcherSpace.find()
 
-                            Log.d("ADX","ScanPage value : "+resultScan + " Index : "+resultScan)
-                            setResult(index,returnIntent)
-                            finish()
+                        if (containsSpace==true||containsSymbol==true) {
+                            alertValueContainsSymbol()
+                            Log.v("ADX","Contains Symbol and Space")
                         }
+
+                        barcodeDetector?.release()
+                        val index= intent.getIntExtra("index",0)
+                        val returnIntent = Intent()
+                        returnIntent.putExtra("value",resultScan)
+                        Log.d("ADX","ScanPage value : "+resultScan + " Index : "+resultScan)
+                        setResult(index,returnIntent)
+                        finish()
+//                        }
+                    }
                 }
 
             }
@@ -102,6 +121,20 @@ class ScanPageActivity : AppCompatActivity() {
 
     }
 
+    private fun alertValueContainsSymbol(){
+        val mDialogView = LayoutInflater.from(this).inflate(R.layout.alert_failed, null)
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setView(mDialogView)
+
+        val alertDialog = builder.show()
+        alertDialog.setCanceledOnTouchOutside(false)
+
+        mDialogView.btnDissmisAlert.setOnClickListener {
+            alertDialog.dismiss()
+            startActivity(Intent(applicationContext,MainActivity::class.java))
+            finish()
+        }
+    }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
